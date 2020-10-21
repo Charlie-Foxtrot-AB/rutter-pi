@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:ffi/ffi.dart';
+import 'dart:ffi' as ffi;
+import 'dart:ffi';
+
+typedef NativeRustStringFromRustFunction = ffi.Pointer<Utf8> Function();
+typedef NativePlayOnceFunction = void Function();
 
 void main() {
   runApp(MyApp());
@@ -70,7 +76,11 @@ class _MyHomePageState extends State<MyHomePage> {
     //
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+	ffi.DynamicLibrary dl =
+		ffi.DynamicLibrary.open("libffi_test.so");
+	var string_from_rust =
+		dl.lookupFunction<NativeRustStringFromRustFunction, NativeRustStringFromRustFunction>(
+          "string_from_rust");
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -98,7 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'You have pushed the button this many times:',
+				Utf8.fromUtf8(string_from_rust())
             ),
             Text(
               '$_counter',
