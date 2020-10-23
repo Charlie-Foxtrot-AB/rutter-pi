@@ -4,6 +4,7 @@ import 'dart:ffi' as ffi;
 import 'dart:ffi';
 
 typedef NativeRustStringFromRustFunction = ffi.Pointer<Utf8> Function();
+typedef NativeRustTakePhotoFunction = ffi.Pointer<Utf8> Function();
 typedef NativePlayOnceFunction = void Function();
 
 void main() {
@@ -38,8 +39,8 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
+  MyHomePage({Key key, this.title}) : super(key: key) {
+  }
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
   // how it looks.
@@ -48,7 +49,6 @@ class MyHomePage extends StatefulWidget {
   // case the title) provided by the parent (in this case the App widget) and
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
-
   final String title;
 
   @override
@@ -56,8 +56,22 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  _MyHomePageState() {
+	  this._dl =
+		  ffi.DynamicLibrary.open("libffi_test.so");
+	  this._string_from_rust =
+		  this._dl.lookupFunction<NativeRustStringFromRustFunction, NativeRustStringFromRustFunction>(
+          "string_from_rust");
+	  this._take_photo_and_write_to_disk =
+		  _dl.lookupFunction<NativeRustStringFromRustFunction, NativeRustStringFromRustFunction>(
+          "take_photo_and_write_to_disk");
+  }
   int _counter = 0;
+  String _message = "";
 
+  ffi.DynamicLibrary _dl;
+  var _string_from_rust;
+	var _take_photo_and_write_to_disk;
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -69,6 +83,12 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _takePhoto() {
+    setState(() {
+      _message = Utf8.fromUtf8(_take_photo_and_write_to_disk());
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -76,11 +96,6 @@ class _MyHomePageState extends State<MyHomePage> {
     //
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
-	ffi.DynamicLibrary dl =
-		ffi.DynamicLibrary.open("libffi_test.so");
-	var string_from_rust =
-		dl.lookupFunction<NativeRustStringFromRustFunction, NativeRustStringFromRustFunction>(
-          "string_from_rust");
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -107,9 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-				Utf8.fromUtf8(string_from_rust())
-            ),
+            Text(_message),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
@@ -118,7 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: _take_photo_and_write_to_disk,
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.

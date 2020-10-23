@@ -10,3 +10,4 @@ name = "ffi_test"
 crate-type = ["cdylib"] #dynamic library
 
 [dependencies]
+rascam = "*"
