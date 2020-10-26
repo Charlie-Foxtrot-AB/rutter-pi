@@ -5,7 +5,6 @@ import 'dart:ffi';
 
 typedef NativeRustStringFromRustFunction = ffi.Pointer<Utf8> Function();
 typedef NativeRustTakePhotoFunction = ffi.Pointer<Utf8> Function();
-typedef NativePlayOnceFunction = void Function();
 
 void main() {
   runApp(MyApp());
@@ -58,7 +57,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   _MyHomePageState() {
 	  this._dl =
-		  ffi.DynamicLibrary.open("libffi_test.so");
+		  ffi.DynamicLibrary.open("/home/pi/target/debug/libffi_test.so");
 	  this._string_from_rust =
 		  this._dl.lookupFunction<NativeRustStringFromRustFunction, NativeRustStringFromRustFunction>(
           "string_from_rust");
@@ -67,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
           "take_photo_and_write_to_disk");
   }
   int _counter = 0;
-  String _message = "";
+  String _message = "Unchanged";
 
   ffi.DynamicLibrary _dl;
   var _string_from_rust;
@@ -86,6 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _takePhoto() {
     setState(() {
       _message = Utf8.fromUtf8(_take_photo_and_write_to_disk());
+      _counter++;
     });
   }
 
@@ -131,7 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _take_photo_and_write_to_disk,
+        onPressed: _takePhoto,
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
