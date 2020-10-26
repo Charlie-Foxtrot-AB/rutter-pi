@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:ffi/ffi.dart';
 import 'dart:ffi' as ffi;
 import 'dart:ffi';
+import 'package:tuple/tuple.dart';
 
 typedef NativeRustStringFromRustFunction = ffi.Pointer<Utf8> Function();
-typedef NativeRustTakePhotoFunction = ffi.Pointer<Utf8> Function();
+typedef NativeRustTakePhotoFunction = Tuple2<ffi.Pointer<Uint8>, Uint32> Function();
 
 void main() {
   runApp(MyApp());
