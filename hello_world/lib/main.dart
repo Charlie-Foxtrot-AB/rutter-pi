@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:ffi/ffi.dart';
 import 'dart:ffi' as ffi;
 import 'dart:ffi';
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:ffi/ffi.dart';
 
 typedef NativeRustStringFromRustFunction = ffi.Pointer<Utf8> Function();
 typedef NativeRustTakePhotoFunction = ffi.Pointer<Uint8> Function();
@@ -58,9 +59,6 @@ class _MyHomePageState extends State<MyHomePage> {
   _MyHomePageState() {
 	  this._dl =
 		  ffi.DynamicLibrary.open("/home/pi/target/debug/libffi_test.so");
-	  this._string_from_rust =
-		  this._dl.lookupFunction<NativeRustStringFromRustFunction, NativeRustStringFromRustFunction>(
-          "string_from_rust");
 	  this._take_photo_ffi =
 		  _dl.lookupFunction<NativeRustTakePhotoFunction, NativeRustTakePhotoFunction>(
           "take_photo_and_write_to_disk");
@@ -69,9 +67,8 @@ class _MyHomePageState extends State<MyHomePage> {
   String _message = "Photos taken: 0";
 
   ffi.DynamicLibrary _dl;
-  var _string_from_rust;
-	var _take_photo_ffi;
-  var _imageByteArray;
+	NativeRustTakePhotoFunction _take_photo_ffi;
+  Uint8List _imageByteArray;
   void _takePhoto() {
     setState(() {
       _imageByteArray = _take_photo_ffi().asTypedList(1024);

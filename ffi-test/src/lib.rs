@@ -16,7 +16,7 @@ pub extern fn take_photo() -> &'static [u8] {
 }
 
 #[no_mangle]
-pub extern fn take_photo_and_write_to_disk() -> *const u8 {
+pub extern fn take_photo_and_write_to_disk() -> *mut u8 {
  let info = info().unwrap();
     if info.cameras.len() < 1 {
         println!("Found 0 cameras. Exiting");
@@ -27,7 +27,9 @@ pub extern fn take_photo_and_write_to_disk() -> *const u8 {
     let mut camera = SimpleCamera::new(info.cameras[0].clone()).unwrap();
     camera.activate().unwrap();
     let bytes = camera.take_one().unwrap();
-    bytes.as_ptr()
+    let ret = bytes.as_mut_ptr();
+    std::mem::forget(bytes);
+    ret
     /*File::create("/home/pi/image_from_flutter.jpg").unwrap().write_all(&b).unwrap();
     image_taken()*/
 }
