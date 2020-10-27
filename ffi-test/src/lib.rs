@@ -26,7 +26,7 @@ pub extern fn take_photo_and_write_to_disk() -> *mut u8 {
     println!("{}", info);
     let mut camera = SimpleCamera::new(info.cameras[0].clone()).unwrap();
     camera.activate().unwrap();
-    let bytes = camera.take_one().unwrap();
+    let mut bytes = camera.take_one().unwrap();
     let ret = bytes.as_mut_ptr();
     std::mem::forget(bytes);
     ret
