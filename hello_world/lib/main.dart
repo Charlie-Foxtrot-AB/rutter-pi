@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:ffi/ffi.dart';
 import 'dart:ffi' as ffi;
 import 'dart:ffi';
-import 'package:tuple/tuple.dart';
 
 typedef NativeRustStringFromRustFunction = ffi.Pointer<Utf8> Function();
-typedef NativeRustTakePhotoFunction = Tuple2<ffi.Pointer<Uint8>, Uint32> Function();
+typedef NativeRustTakePhotoFunction = ffi.Pointer<Uint8> Function();
 
 void main() {
   runApp(MyApp());
@@ -62,31 +61,22 @@ class _MyHomePageState extends State<MyHomePage> {
 	  this._string_from_rust =
 		  this._dl.lookupFunction<NativeRustStringFromRustFunction, NativeRustStringFromRustFunction>(
           "string_from_rust");
-	  this._take_photo_and_write_to_disk =
-		  _dl.lookupFunction<NativeRustStringFromRustFunction, NativeRustStringFromRustFunction>(
+	  this._take_photo_ffi =
+		  _dl.lookupFunction<NativeRustTakePhotoFunction, NativeRustTakePhotoFunction>(
           "take_photo_and_write_to_disk");
   }
   int _counter = 0;
-  String _message = "Unchanged";
+  String _message = "Photos taken: 0";
 
   ffi.DynamicLibrary _dl;
   var _string_from_rust;
-	var _take_photo_and_write_to_disk;
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
+	var _take_photo_ffi;
+  var _imageByteArray;
   void _takePhoto() {
     setState(() {
-      _message = Utf8.fromUtf8(_take_photo_and_write_to_disk());
+      _imageByteArray = _take_photo_ffi().asTypedList(1024);
       _counter++;
+      _message = "Photos taken: '$_counter'";
     });
   }
 
@@ -123,6 +113,8 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            if (_imageByteArray != null)
+              Image.memory(_imageByteArray),
             Text(_message),
             Text(
               '$_counter',
