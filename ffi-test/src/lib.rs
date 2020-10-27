@@ -10,13 +10,14 @@ pub extern fn string_from_rust() -> *const c_char {
     p
 }
 
-#[no_mangle]
-pub extern fn take_photo() -> &'static [u8] {
-    &[0u8;100] 
+#[repr(C)]
+pub struct ImageBuffer {
+    img_ptr: *mut u8,
+    len: u32,
 }
 
 #[no_mangle]
-pub extern fn take_photo_and_write_to_disk() -> *mut u8 {
+pub extern fn take_photo() -> *mut ImageBuffer {
  let info = info().unwrap();
     if info.cameras.len() < 1 {
         println!("Found 0 cameras. Exiting");
@@ -27,11 +28,13 @@ pub extern fn take_photo_and_write_to_disk() -> *mut u8 {
     let mut camera = SimpleCamera::new(info.cameras[0].clone()).unwrap();
     camera.activate().unwrap();
     let mut bytes = camera.take_one().unwrap();
+    let len = bytes.len() as u32;
     let ret = bytes.as_mut_ptr();
     std::mem::forget(bytes);
+    let mut ib = ImageBuffer { img_ptr: ret, len};
+    let ret = &mut ib as *mut ImageBuffer;
+    std::mem::forget(ib);
     ret
-    /*File::create("/home/pi/image_from_flutter.jpg").unwrap().write_all(&b).unwrap();
-    image_taken()*/
 }
 
 fn image_taken() -> *const c_char {

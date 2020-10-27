@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:ffi/ffi.dart';
 
 typedef NativeRustStringFromRustFunction = ffi.Pointer<Utf8> Function();
-typedef NativeRustTakePhotoFunction = ffi.Pointer<Uint8> Function();
+typedef NativeRustTakePhotoFunction = ffi.Pointer<ImageBuffer> Function();
 
 void main() {
   runApp(MyApp());
@@ -55,23 +55,34 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+class ImageBuffer extends Struct {
+  Pointer<Uint8> img_ptr; 
+  
+  @Uint32()
+  int len;
+
+  factory ImageBuffer.allocate(Pointer<Uint8> img_ptr, int len) => 
+    allocate<ImageBuffer>().ref
+      ..img_ptr = img_ptr
+      ..len = len;
+}
+
 class _MyHomePageState extends State<MyHomePage> {
   _MyHomePageState() {
 	  this._dl =
 		  ffi.DynamicLibrary.open("/home/pi/target/debug/libffi_test.so");
 	  this._take_photo_ffi =
 		  _dl.lookupFunction<NativeRustTakePhotoFunction, NativeRustTakePhotoFunction>(
-          "take_photo_and_write_to_disk");
+          "take_photo");
   }
   int _counter = 0;
   String _message = "Photos taken: 0";
-
+  ImageBuffer _imageBuffer;
   ffi.DynamicLibrary _dl;
 	NativeRustTakePhotoFunction _take_photo_ffi;
-  Uint8List _imageByteArray;
   void _takePhoto() {
     setState(() {
-      _imageByteArray = _take_photo_ffi().asTypedList(1024);
+      _imageBuffer = _take_photo_ffi().ref;
       _counter++;
       _message = "Photos taken: '$_counter'";
     });
@@ -110,8 +121,8 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            if (_imageByteArray != null)
-              Image.memory(_imageByteArray),
+            if (_imageBuffer != null) 
+              Image.memory(_imageBuffer.img_ptr.asTypedList(_imageBuffer.len)),
             Text(_message),
             Text(
               '$_counter',
