@@ -31,9 +31,9 @@ pub extern fn take_photo() -> *mut ImageBuffer {
     let len = bytes.len() as u32;
     let ret = bytes.as_mut_ptr();
     std::mem::forget(bytes);
-    let mut ib = ImageBuffer { img_ptr: ret, len};
-    let ret = &mut ib as *mut ImageBuffer;
-    std::mem::forget(ib);
+    let mut ib = Box::new(ImageBuffer { img_ptr: ret, len});
+    let ret = Box::into_raw(ib);
+    std::mem::forget(ret);
     ret
 }
 
