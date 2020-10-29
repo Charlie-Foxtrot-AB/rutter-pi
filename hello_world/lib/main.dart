@@ -83,6 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _takePhoto() {
     setState(() {
       _imageBuffer = _take_photo_ffi().ref;
+      print("Lenght of ImageBuffer.len: ${_imageBuffer.len}");
       _counter++;
       _message = "Photos taken: '$_counter'";
     });
